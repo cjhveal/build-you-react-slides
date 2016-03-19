@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+
+      h1 { font-size: 5rem !important; }
+      .remark-slide-content {
+        font-size: 1.75rem !important;
+      }
+
+      .big { }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Build you a React
+## With Cody Veal &amp; Gigster
+
+---
+
+# React?
+
+React is an open source library developed by Facebook for building reactive user interfaces
+
+---
+
+# Reactive Programming
+
+- Declare structure of data flow.
+
+- Automaticallly propagate changes.
+
+- For example: Spreadsheets.
+
+???
+
+Reactive programming is a declarative programming paradigm
+in which you define static relationships and structure between your inputs
+and when the data changes, it is propagated throughout the system by design.
+
+---
+
+# Reactive UI
+
+- Declare interface structure given an application state
+
+- Updating application state updates the interface.
+
+???
+
+Very similar to the server request-response cycle.
+
+---
+
+# How Else Has It Been Done?
+
+- Direct Document Manipulation (jQuery)
+
+--
+
+- MVC Architecture (Angular, Ruby on Rails, etc).
+
+---
+
+# Direct DOM Manipulation
+
+```js
+  $('.increment-button').on('click', function() {
+    var count = $('.counter').text() + 1;
+    $('.counter').text(count);
+
+    if (count >= 5) {
+      $('.counter').css('color', 'red');
+    }
+  })
+```
+
+---
+
+# What's Wrong?
+
+--
+
+- Couples representation of state with presentation
+
+--
+
+- Must manually manage propagation of UI updates from events.
+
+---
+
+# Model View Controller
+
+- Model handles internal representation of state
+
+--
+
+- View handles user-facing presentation of state
+
+--
+
+- Controller sends messages between and manipulates both.
+
+---
+
+# Model View Controller
+
+![MVC](mvc.png)
+
+---
+
+# What's Wrong?
+
+- Bi-directional communication between components makes it difficult to trace execution.
+
+--
+
+- Two way binding to application state leads to strange cascading events at scale.
+
+--
+
+- However, concerns are better separated than the previous example.
+
+---
+
+# What's Wrong?
+
+.right[![MVC Scale](mvc-scale.png)]
+
+---
+
+# Motivations for React
+
+- Simplicity
+
+--
+
+- Flexibility
+
+--
+
+- Predictability
+
+--
+
+- Not necessarily Performance (but it helps)
+
+???
+
+One of the React core contributors wrote that Performance was not a reason that React was used,
+but more a requirement for the reactive paradigm to be used.
+
+---
+
+# Reactive UI at a High Level
+
+- Virtual DOM enables manipulation of light weight Javascript objects rather than DOM nodes.
+
+--
+
+- Data flows from the top of the application downwards.
+
+--
+
+- All changes to data are done through structured mutations that pass the results back through to the root.
+
+---
+
+# A Naive approach
+
+- When the state changes, replace the entire UI with a copy.
+
+---
+
+# What is the DOM?
+
+--
+
+- **D**ocument **O**bject **M**odel.
+
+--
+
+- Imperative programming interface to a document structure.
+
+---
+
+# Anatomy of the DOM
+
+The DOM is a tree structure of nodes called `Element`s
+which take the form the form:
+
+```html
+<ul id="abc">
+  <li>1</li>
+  <li>2</li>
+</ul>
+```
+--
+
+`ul`, `li`: tag names
+
+--
+
+`id="abc"`: attributes
+
+--
+
+`<li>1</li>`, `<li>2</li>`: children
+
+--
+
+`1`, `2`: `TextNode`
+
+---
+
+# What's wrong with the DOM?
+
+- Imperative implies hard to reactively propagate changes.
+
+- Programming interface is cumbersome and ugly.
+
+---
+
+# a Solution: Virtual DOM
+
+- declarative description of the DOM in JavaScript.
+
+---
+
+# Document Object Model model
+
+We'll introduce a few types to model the DOM:
+
+- `VElem`: a virtual DOM Element
+- `VText`: a virtual text node
+- `VTree`: a slice of the virtual document tree.
+
+---
+# Virtual DOM Types
+
+```js
+VTree = (VText | VElem);
+
+VText = {
+  text: String,
+};
+
+VElem = {
+  tag: String,
+  props: Object<String, String|Function>,
+  children: Array<VTree>
+};
+```
+---
+
+# Event Handlers
+
+`VElem` event handlers are passed in as props that begin with the letters 'on' and have `Function` values.
+
+for instance, a prop passed in as 'onclick' should be attached to the 'click' event on the `Element`.
+
+---
+
+# Implementation
+
+https://github.com/cjhveal/build-you-react
+
+---
+
+# Implementation
+
+1. VText constructor
+2. VElem constructor
+3. VText render
+4. VElem render
+5. Hyperscript Helper
+6. Mount Helper
+
+---
+
+# VText constructor
+
+```js
+function VText(text: String): VText {
+  // implement me!
+}
+```
+---
+
+# VElem constructor
+
+```js
+function VElem(
+  tag: String,
+  props: Object<String, String>,
+  children: Array<VText|VElem>
+) {
+  // implement me!
+}
+```
+---
+
+# VText render
+
+Builds a DOM `TextNode` from our VText object.
+
+```js
+VText.prototype.render = function() : TextNode {
+  // implement me!
+}
+```
+
+See `document.createTextNode(text)` for the DOM `TextNode` constructor.
+
+---
+
+# VElem render
+
+Builds a DOM `Element` from a `VElem` Object. Should recursively render any children to native DOM, too.
+
+```
+VElem.prototype.render = function() : Element {
+  // implement me!
+}
+```
+
+See `document.createElement(tagName)` to create a native DOM `Element`.
+
+See `element.setAttribute(name, value)` and `element.addEventListener(eventName, handler)` for attaching props.
+
+See `element.appendChild(childNode)` for attaching children.
+
+---
+
+# Hyperscript Helper
+
+The hyperscript helper `el` will instantiate a `VElem`, allow you to exclude empty prop objects, and
+convert any string children to `VText` automatically.
+
+A basic reference implementation is provided.
+
+---
+
+# Mount Helper
+
+The mount helper `mount` will let us render a virtual tree into a native DOM element
+
+A reference implementation is provided.
+
+---
+
+# Unidirectional Data Flow
+
+- A pattern that really synergizes with React's other strengths.
+
+--
+
+- The basic idea is that your entire application state is stored in a single tree separate from your component state.
+
+--
+
+- Mutations are dispatched through handlers in the Components, and the resulting updated state is passed through to the top of the application.
+
+--
+
+- Popular implementations are the Facebook backed Flux and spin-off Redux.
+
+---
+
+# Unidirectional Data Flow
+
+.center[![Unidirectional Flow Chart](data-flow.png)]
+
+---
+
+# State Container Types
+
+```js
+State = Any
+
+Action = (getState) => State
+
+Store = {
+  getState: () => State,
+  actions: Object<String, Action>
+}
+```
+
+---
+
+# Store Constructor
+
+```js
+function Store(
+  initialState: State,
+  actions: Object<String, Action>,
+  onStateSet: (Store) => ()
+) {
+  // implement me!
+}
+
+Store.prototype.getState = function() : State {
+  // implement me!
+}
+
+```
+---
+
+# Components
+
+Components are light wrappers over a render function that expose them to the application state.
+
+```js
+function Component(renderFn : (Store) => VTree) {
+
+}
+
+Component.prototype.render = function(store: Store) : Element {
+
+}
+```
+
+---
+
+# Implementation P2
+
+1. Implement Stores.
+
+2. Modify render methods to take a Store and pass it through to all children.
+
+3. Implement Components.
+
+---
+
+# Reconciliation
+
+- DOM nodes are heavyweight and stateful
+
+--
+
+- Very wasteful to recreate the entire UI on every state change.
+
+--
+
+- **Solution**: Reconciliation.
+
+---
+
+# General Tree Diffing
+
+- What's the complexity of finding a minimal edit script between two trees?
+
+--
+
+- Finding a minimal edit script to transform one tree to another is solvable in O(n^3)
+w.r.t. the number of nodes. This has been proven optimal.
+
+--
+
+- However, even modest applications can contain 1000s of nodes.
+
+--
+
+- Updates must be realtime, ideally less than 16.67ms
+
+???
+
+---
+
+# React's Approach:
+
+- React instead uses heuristics about how applications generally operate to reduce
+the time complexity.
+
+1. Components of the same type will likely generate similar trees,
+components which differ by type will likely generate dissimilar trees.
+
+2. It is often possible to unqiuely key elements in a stable manner across updates.
+
+---
+
+# High Level View:
+
+1. Perform a depth first search on the tree, pairwise comparing previous and new nodes.
+   Replacing entire subtree below when two nodes are of different types.
+
+2. When two Nodes are of equal type, we find the difference in their props and children.
+   While props difference is simply a Set difference, child diffing poses some issues.
+
+---
+
+# Subtree Re-Rendering
+
+.center[![Subtree](subtree.png)]
+
+---
+
+# Naive Children Reconciliation.
+
+In the general, unoptimized case, React takes a very simple approach:
+
+- Iterate through the list pairwise comparing nodes.
+
+- Replace nodes of different types and diff nodes of the same type.
+
+- However, inserting an element at the beginning of the children array causes a signfiicant issue.
+
+---
+
+# Optimal Child Reconciliation.
+
+- Finding a minimal edit script for a list can be solved via Levenshtein in `O(n^2)`.
+
+- However, this will not be able to identify reorderings.
+  Algorithms to do so have prohibitive complexity for our needs.
+
+---
+
+# Keys
+
+- By providing a unique key value, we can build hashed indexes to efficiently perform
+insertion, deletion, and replacement in linear time.
+
+.center[![keys](keys.png)]
+
+---
+
+# References
+
+React Docs Reference:
+
+https://facebook.github.io/react/docs
+
+--
+
+
+`virtual-dom`:
+
+https://github.com/Matt-Esch/virtual-dom
+
+---
+
+# References
+
+Vjeux Blog:
+
+http://blog.vjeux.com/
+
+--
+
+Giulio Canti's Blog:
+
+https://gcanti.github.io
+
+--
+
+Paper with Optimal Tree Diff Result:
+
+http://www.cs.haifa.ac.il/~oren/Publications/TEDinTALG.pdf
+
+---
+
+# Thanks!
+
+    </textarea>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
